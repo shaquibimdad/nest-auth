@@ -38,8 +38,9 @@ export class UserController {
   async resetPassword(
     @Body() body: User,
     @Res({ passthrough: true }) response: Response,
+    @Req() request: Request,
   ) {
-    return this.userService.resetPassword(body, response);
+    return this.userService.resetPassword(body, response,request);
   }
 
   @Post('logout')

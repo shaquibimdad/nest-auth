@@ -19,6 +19,7 @@ export class UserService {
 
   async create(userDto: CreateUserDto): Promise<User> {
     const user = new User();
+    user.name = userDto.name;
     user.email = userDto.email;
     user.password = userDto.password;
     return this.userRepository.save(user);
@@ -40,23 +41,31 @@ export class UserService {
     };
   }
 
-  async resetPassword(body, response) {
-    const { email, password } = body;
-    const user = await this.findOne({ email });
+  async resetPassword(body, response, request) {
+    try {
+      const cookie = request.cookies['jwt'];
+      const data = await this.jwtService.verifyAsync(cookie);
+      if (!data) {
+        throw new UnauthorizedException();
+      }
+      const { email, password } = body;
+      const user = await this.findOne({ email });
 
-    if (!user) {
-      throw new BadRequestException('invalid credentials');
+      if (!user) {
+        throw new BadRequestException('User Not Found');
+      }
+      const hashedPassword = await hashSync(password, genSaltSync(10));
+
+      const updatedUser = await this.update(user._id, {
+        password: hashedPassword,
+      });
+
+      const jwt = await this.jwtService.signAsync({ id: updatedUser._id });
+
+      response.cookie('jwt', jwt, { httpOnly: true });
+    } catch (e) {
+      throw new UnauthorizedException();
     }
-
-    const hashedPassword = await hashSync(password, genSaltSync(10));
-
-    const updatedUser = await this.update(user._id, {
-      password: hashedPassword,
-    });
-
-    const jwt = await this.jwtService.signAsync({ id: updatedUser._id });
-
-    response.cookie('jwt', jwt, { httpOnly: true });
 
     return {
       message: 'Reset password success',
