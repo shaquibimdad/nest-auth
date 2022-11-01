@@ -9,6 +9,5 @@ export function ormConfig(): TypeOrmModuleOptions {
     database: 'Intern-Proj-Demo',
     useUnifiedTopology: true,
     entities: [User],
-    // entities: [__dirname + '/../**/*.entity.{js,ts}'],
   };
 }
