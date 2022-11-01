@@ -8,7 +8,7 @@ import { MongoRepository } from 'typeorm';
 import { hashSync, genSaltSync, compareSync } from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { User } from './entity/user.entity';
-
+import { CreateUserDto } from './dto/create-user.dto';
 @Injectable()
 export class UserService {
   constructor(
@@ -17,8 +17,11 @@ export class UserService {
     private jwtService: JwtService,
   ) {}
 
-  async create(data: any): Promise<User> {
-    return this.userRepository.save(data);
+  async create(userDto: CreateUserDto): Promise<User> {
+    const user = new User();
+    user.email = userDto.email;
+    user.password = userDto.password;
+    return this.userRepository.save(user);
   }
 
   async findOne(condition: any): Promise<User> {
@@ -95,8 +98,8 @@ export class UserService {
     };
   }
 
-  async register(body) {
-    const { email, password } = body;
+  async register(userDto: CreateUserDto) {
+    const { email, password } = userDto;
     const user = await this.findOne({ email });
 
     if (user) {
@@ -106,18 +109,14 @@ export class UserService {
     const hashedPassword = await hashSync(password, genSaltSync(10));
 
     const newUser = await this.create({
-      ...body,
+      ...userDto,
       password: hashedPassword,
     });
 
-    // const jwt = await this.jwtService.signAsync({ id: newUser._id });
     delete newUser.password;
     return {
       message: 'Register success',
       newUser,
-      // data: {
-      //   jwt,
-      // },
     };
   }
 
