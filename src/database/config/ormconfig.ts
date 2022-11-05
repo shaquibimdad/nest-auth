@@ -1,5 +1,5 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { User } from '../../components/user/entity/user.entity';
+import { User } from '../../components/users/entities/user.entity';
 export function ormConfig(): TypeOrmModuleOptions {
   return {
     type: 'mongodb',
