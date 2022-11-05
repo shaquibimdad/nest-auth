@@ -3,7 +3,7 @@ import { User } from '../../components/users/entities/user.entity';
 export function ormConfig(): TypeOrmModuleOptions {
   return {
     type: 'mongodb',
-    url: process.env.MONGO_URL,
+    url: process.env.MONGO_URI,
     useNewUrlParser: true,
     logging: true,
     database: 'Intern-Proj-Demo',

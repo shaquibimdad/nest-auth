@@ -1,41 +1,61 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { User, UserDocument } from './schemas/user.schema';
-
+import { MongoRepository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { User } from './entities/user.entity';
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepository: MongoRepository<User>,
+  ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<UserDocument> {
-    const createdUser = new this.userModel(createUserDto);
-    return createdUser.save();
+  async create(userDto: CreateUserDto): Promise<User> {
+    const user = new User();
+    user.name = userDto.name;
+    user.username = userDto.username;
+    user.password = userDto.password;
+    user.refreshToken = userDto.refreshToken;
+    return this.userRepository.save(user);
   }
 
-  async findAll(): Promise<UserDocument[]> {
-    return this.userModel.find().exec();
+  async findOne(condition: any): Promise<User> {
+    return this.userRepository.findOne(condition);
   }
 
-  async findById(id: string): Promise<UserDocument> {
-    return this.userModel.findById(id);
+
+
+  async findAll(): Promise<User[]> {
+    return this.userRepository.find();
   }
 
-  async findByUsername(username: string): Promise<UserDocument> {
-    return this.userModel.findOne({ username }).exec();
+  async findById(id: any): Promise<User> {
+    return this.findOne(id);
   }
 
-  async update(
-    id: string,
-    updateUserDto: UpdateUserDto,
-  ): Promise<UserDocument> {
-    return this.userModel
-      .findByIdAndUpdate(id, updateUserDto, { new: true })
-      .exec();
+  async findByUsername(username: any): Promise<User> {
+    return this.findOne({username});
   }
 
-  async remove(id: string): Promise<UserDocument> {
-    return this.userModel.findByIdAndDelete(id).exec();
+  async update(id: any, updateUserDto: UpdateUserDto): Promise<User> {
+    const user = await this.userRepository.findOne(id);
+    this.userRepository.merge(user, updateUserDto);
+    return this.userRepository.save(user);
+  }
+
+  // async update(
+  //   id: string,
+  //   updateUserDto: UpdateUserDto,
+  // ): Promise<UserDocument> {
+  //   return this.userModel
+  //     .findByIdAndUpdate(id, updateUserDto, { new: true })
+  //     .exec();
+  // }
+
+
+  async remove(id: any): Promise<User> {
+    const user = await this.userRepository.findOne(id);
+    return this.userRepository.remove(user);
   }
 }

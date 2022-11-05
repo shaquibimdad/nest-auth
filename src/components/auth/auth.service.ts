@@ -19,9 +19,11 @@ export class AuthService {
   ) {}
   async signUp(createUserDto: CreateUserDto): Promise<any> {
     // Check if user exists
+    //console.log(createUserDto.username);
     const userExists = await this.usersService.findByUsername(
       createUserDto.username,
     );
+
     if (userExists) {
       throw new BadRequestException('User already exists');
     }
@@ -32,6 +34,8 @@ export class AuthService {
       ...createUserDto,
       password: hash,
     });
+   
+    
     const tokens = await this.getTokens(newUser._id, newUser.username);
     await this.updateRefreshToken(newUser._id, tokens.refreshToken);
     return tokens;
@@ -50,9 +54,9 @@ export class AuthService {
   }
 
   async logout(userId: string) {
-    this.usersService.update(userId, { refreshToken: null });
+    await this.usersService.update(userId, { refreshToken: null });
   }
-
+ 
   async refreshTokens(userId: string, refreshToken: string) {
     const user = await this.usersService.findById(userId);
     if (!user || !user.refreshToken)
@@ -62,8 +66,8 @@ export class AuthService {
       refreshToken,
     );
     if (!refreshTokenMatches) throw new ForbiddenException('Access Denied');
-    const tokens = await this.getTokens(user.id, user.username);
-    await this.updateRefreshToken(user.id, tokens.refreshToken);
+    const tokens = await this.getTokens(user._id, user.username);
+    await this.updateRefreshToken(user._id, tokens.refreshToken);
     return tokens;
   }
 
