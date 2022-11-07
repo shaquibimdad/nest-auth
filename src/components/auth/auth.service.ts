@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { CreateUserDto } from 'src/components/users/dto/create-user.dto';
 import { UsersService } from 'src/components/users/users.service';
-import * as argon2 from 'argon2';
+import { hashSync, genSaltSync, compareSync } from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { AuthDto } from './dto/auth.dto';
@@ -45,7 +45,7 @@ export class AuthService {
     // Check if user exists
     const user = await this.usersService.findByUsername(data.username);
     if (!user) throw new BadRequestException('User does not exist');
-    const passwordMatches = await argon2.verify(user.password, data.password);
+    const passwordMatches = await compareSync(data.password, user.password);
     if (!passwordMatches)
       throw new BadRequestException('Password is incorrect');
     const tokens = await this.getTokens(user._id, user.username);
@@ -61,9 +61,9 @@ export class AuthService {
     const user = await this.usersService.findById(userId);
     if (!user || !user.refreshToken)
       throw new ForbiddenException('Access Denied');
-    const refreshTokenMatches = await argon2.verify(
-      user.refreshToken,
+    const refreshTokenMatches = await compareSync(
       refreshToken,
+      user.refreshToken,
     );
     if (!refreshTokenMatches) throw new ForbiddenException('Access Denied');
     const tokens = await this.getTokens(user._id, user.username);
@@ -72,7 +72,7 @@ export class AuthService {
   }
 
   hashData(data: string) {
-    return argon2.hash(data);
+    return hashSync(data, genSaltSync(10));
   }
 
   async updateRefreshToken(userId: string, refreshToken: string) {
