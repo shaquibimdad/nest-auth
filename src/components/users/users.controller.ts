@@ -28,10 +28,21 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
-  @Get(':id')
-  findById(@Param('id') id: string) {
+  @Get("projects/all")
+  getData() {
+    return this.usersService.findAll();
+  }
+
+  @Get("projects/:id")
+  getDataById(@Param('id') id: string) {
     return this.usersService.findById(id);
   }
+  
+
+  // @Get(':id')
+  // findById(@Param('id') id: string) {
+  //   return this.usersService.findById(id);
+  // }
 
   @UseGuards(AccessTokenGuard)
   @Patch(':id')

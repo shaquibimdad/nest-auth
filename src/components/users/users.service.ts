@@ -24,8 +24,6 @@ export class UsersService {
     return this.userRepository.findOne(condition);
   }
 
-
-
   async findAll(): Promise<User[]> {
     return this.userRepository.find();
   }
@@ -35,7 +33,7 @@ export class UsersService {
   }
 
   async findByUsername(username: any): Promise<User> {
-    return this.findOne({username});
+    return this.findOne({ username });
   }
 
   async update(id: any, updateUserDto: UpdateUserDto): Promise<User> {
@@ -43,16 +41,6 @@ export class UsersService {
     this.userRepository.merge(user, updateUserDto);
     return this.userRepository.save(user);
   }
-
-  // async update(
-  //   id: string,
-  //   updateUserDto: UpdateUserDto,
-  // ): Promise<UserDocument> {
-  //   return this.userModel
-  //     .findByIdAndUpdate(id, updateUserDto, { new: true })
-  //     .exec();
-  // }
-
 
   async remove(id: any): Promise<User> {
     const user = await this.userRepository.findOne(id);
